@@ -4,6 +4,10 @@ on:
   push:
     branches: [ "main" ] # Запускать при пуше в main
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   test:
     name: Test
