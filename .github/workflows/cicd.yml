@@ -1,0 +1,45 @@
+name: Go CI/CD
+
+on:
+  push:
+    branches: [ "main" ] # Запускать при пуше в main
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Установить Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24'
+
+      - name: Скачать репозиторий
+        uses: actions/checkout@v3
+
+      - name: Запустить тесты
+        run: go test -v ./...
+
+
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Скачать репозиторий
+        uses: actions/checkout@v3
+
+      - name: Войти в GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Собрать и отправить образ
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
